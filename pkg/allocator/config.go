@@ -59,6 +59,7 @@ type EtcdConfig struct {
 	EtcdKeyFile           string `json:"etcdKeyFile"`
 	EtcdTrustedCAFileFile string `json:"etcdTrustedCAFileFile"`
 }
+
 type IPAMEnvArgs struct {
 	types.CommonArgs
 	IP net.IP `json:"ip,omitempty"`
@@ -77,7 +78,7 @@ type Range struct {
 	Gateway    net.IP      `json:"gateway,omitempty"`
 }
 
-// NewIPAMConfig creates a NetworkConfig from the given network name.
+// LoadIPAMConfig creates a NetworkConfig from the given network name.
 func LoadIPAMConfig(bytes []byte, envArgs string) (*IPAMConfig, string, error) {
 	n := Net{}
 	if err := json.Unmarshal(bytes, &n); err != nil {

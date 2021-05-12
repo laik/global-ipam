@@ -31,14 +31,17 @@ func New(name string, _IPAMConfig *allocator.IPAMConfig) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	netConfig, err := netConfigJson(_IPAMConfig)
 	if err != nil {
 		return nil, err
 	}
+
 	etcdKeyPrefix, err := initStore(name, netConfig, etcdClient)
 	if err != nil {
 		return nil, err
 	}
+
 	session, err := concurrency.NewSession(etcdClient, concurrency.WithTTL(3))
 	if err != nil {
 		return nil, err
@@ -49,6 +52,7 @@ func New(name string, _IPAMConfig *allocator.IPAMConfig) (*Store, error) {
 		EtcdKeyPrefix: etcdKeyPrefix,
 		session:       session,
 	}
+
 	return store, nil
 }
 

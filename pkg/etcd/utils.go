@@ -10,7 +10,6 @@ import (
 )
 
 func connectStore(etcdConfig *allocator.EtcdConfig) (*clientv3.Client, error) {
-
 	var etcdClient *clientv3.Client
 	var err error
 	if strings.HasPrefix(etcdConfig.EtcdURL, "https") {
@@ -22,9 +21,6 @@ func connectStore(etcdConfig *allocator.EtcdConfig) (*clientv3.Client, error) {
 	return etcdClient, err
 }
 
-/*
-	ETCD Related
-*/
 func connectWithoutTLS(url string) (*clientv3.Client, error) {
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints:   []string{url},

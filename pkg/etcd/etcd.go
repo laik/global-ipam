@@ -13,7 +13,7 @@ import (
 	"github.com/yametech/global-ipam/pkg/allocator"
 )
 
-const EtcdPrefix string = "/global-ipam-etcd-cni/networks"
+const Prefix string = "/global-ipam-etcd-cni/networks"
 
 // Store is a simple disk-backed store that creates one file per IP
 // address in a given directory. The contents of the file are the container ID.
@@ -53,7 +53,7 @@ func New(name string, _IPAMConfig *allocator.IPAMConfig) (*Store, error) {
 }
 
 func initStore(name string, netConfig string, etcdClient *clientv3.Client) (string, error) {
-	key := EtcdPrefix + name
+	key := Prefix + name
 	_, err := etcdClient.Put(context.TODO(), key, netConfig)
 	if err != nil {
 		panic(err)

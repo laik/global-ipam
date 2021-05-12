@@ -23,16 +23,16 @@ func Test_Lock(t *testing.T) {
 
 	_, _ = err, _IPAMConfig
 
-	_, err = New("", _IPAMConfig)
+	s1, err := New("", _IPAMConfig)
 	if err != nil {
 		t.Error(err)
 	}
 
-	//err = s1.Lock()
-	//if err != nil {
-	//	t.Error(err)
-	//}
-	//
+	err = s1.Lock()
+	if err != nil {
+		t.Error(err)
+	}
+
 	//s2, err := New("", _IPAMConfig)
 	//err = s2.Lock()
 	//if err != nil {

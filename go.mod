@@ -15,3 +15,8 @@ require (
 	go.uber.org/zap v1.16.0 // indirect
 	google.golang.org/grpc v1.26.0 // indirect
 )
+
+replace (
+	github.com/coreos/etcd => github.com/yametech/etcd v3.3.20-grpc1.27-origmodule+incompatible
+	google.golang.org/grpc => google.golang.org/grpc v1.27.0
+)

@@ -60,7 +60,7 @@ func initStore(name string, netConfig string, etcdClient *clientv3.Client) (stri
 	key := Prefix + name
 	_, err := etcdClient.Put(context.TODO(), key, netConfig)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	return key, nil
 }

@@ -55,3 +55,8 @@ export CNI_PATH=/opt/cni/bin/
 
 ip netns delete a && ip netns add a && cnitool add macvlan-global-ipam /var/run/netns/a
 
+
+# etcd 
+export ETCDCTL_API=3
+etcdctl --endpoints=10.200.100.200:42379 get /global-ipam-etcd-cni --prefix
+

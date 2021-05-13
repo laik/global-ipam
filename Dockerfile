@@ -15,13 +15,17 @@ RUN go mod download
 # Add the go source
 ADD . .
 
-# Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o build/global-ipam main.go
+# Build cni
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o build/global-ipam cmd/cni/main.go
+
+# Build cni-server
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o build/cni-server cmd/cni-server/main.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM alpine:latest
 WORKDIR /
 COPY --from=builder /workspace/build/global-ipam .
+COPY --from=builder /workspace/build/cni-server .
 
-ENTRYPOINT ["/global-ipam"]
+ENTRYPOINT ["cni.sh"]

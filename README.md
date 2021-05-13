@@ -53,7 +53,14 @@ EOF
 
 export CNI_PATH=/opt/cni/bin/
 
-ip netns delete a && ip netns add a && cnitool add macvlan-global-ipam /var/run/netns/a
+# delete ns a
+ip netns delete a
+
+# if not exists create
+ip netns add a && cnitool add macvlan-global-ipam /var/run/netns/a
+
+# check ns ip addr
+ip netns exec a ip addr
 
 
 # etcd 

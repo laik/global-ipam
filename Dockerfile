@@ -23,9 +23,9 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o build/cni-server cmd/cn
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM alpine:latest
+FROM centos:8
 WORKDIR /
 COPY --from=builder /workspace/build/global-ipam .
 COPY --from=builder /workspace/build/cni-server .
-
-ENTRYPOINT ["cni.sh"]
+ADD cni.sh .
+RUN chmod +x cni.sh

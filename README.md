@@ -1,5 +1,8 @@
 # global-ipam
 
+kubectl apply -f deploy/
+
+
 ## on linux system
 
 mkdir -p /opt/cni/bin/ && cd  /opt/cni/bin/
@@ -66,4 +69,3 @@ ip netns exec a ip addr
 # etcd 
 export ETCDCTL_API=3
 etcdctl --endpoints=10.200.100.200:42379 get /global-ipam-etcd-cni --prefix
-

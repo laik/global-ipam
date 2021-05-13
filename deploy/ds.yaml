@@ -28,18 +28,17 @@ spec:
           hostPath:
             path: /var/run/netns
             type: ''
-      initContainers:
-        - name: install-cni
+      containers:
+        - name: cni-server
           image: 'yametech/global-ipam:0.2.0'
           command:
-            - /install-cni.sh
-          resources: {}
+          - /cni.sh
           volumeMounts:
             - name: cni-conf
               mountPath: /etc/cni/net.d
             - name: cni-bin
               mountPath: /opt/cni/bin
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           securityContext:
             privileged: true
             runAsUser: 0

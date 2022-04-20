@@ -12,8 +12,8 @@ import (
 	"github.com/containernetworking/cni/pkg/version"
 	"github.com/containernetworking/plugins/pkg/utils/buildversion"
 	"github.com/yametech/global-ipam/pkg/allocator"
-	"github.com/yametech/global-ipam/pkg/client"
 	"github.com/yametech/global-ipam/pkg/dns"
+	"github.com/yametech/global-ipam/pkg/store/client"
 )
 
 const PluginName = "global-ipam"
@@ -43,7 +43,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 	if err != nil {
 		return err
 	}
-	
+
 	defer store.Close()
 
 	// Keep the allocators we used, so we can release all IPs if an error

@@ -16,6 +16,8 @@ package store
 
 import "net"
 
+const UNIX_SOCK_PATH = "/var/run/global-ipam.sock"
+
 type Store interface {
 	Lock() error
 	Unlock() error

@@ -2,6 +2,7 @@ package client
 
 import (
 	"net"
+	"sync"
 
 	"github.com/yametech/global-ipam/pkg/allocator"
 	"github.com/yametech/global-ipam/pkg/store"
@@ -9,10 +10,14 @@ import (
 
 var _ store.Store = &Client{}
 
-type Client struct{}
+type Client struct {
+	mutex sync.Mutex
+}
 
-func New(name string, IPAMConfig *allocator.IPAMConfig) (*store.Store, error) {
-	return nil, nil
+func New(name string, IPAMConfig *allocator.IPAMConfig) (store.Store, error) {
+	return &Client{
+		mutex: sync.Mutex{},
+	}, nil
 }
 
 // Close implements store.Store
@@ -26,8 +31,9 @@ func (*Client) LastReservedIP(rangeID string) (net.IP, error) {
 }
 
 // Lock implements store.Store
-func (*Client) Lock() error {
-	panic("unimplemented")
+func (c *Client) Lock() error {
+	c.mutex.Lock()
+	return nil
 }
 
 // Release implements store.Store
@@ -46,6 +52,7 @@ func (*Client) Reserve(id string, ip net.IP, rangeID string) (bool, error) {
 }
 
 // Unlock implements store.Store
-func (*Client) Unlock() error {
-	panic("unimplemented")
+func (c *Client) Unlock() error {
+	c.mutex.Unlock()
+	return nil
 }

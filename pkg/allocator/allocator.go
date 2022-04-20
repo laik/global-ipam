@@ -16,13 +16,14 @@ package allocator
 
 import (
 	"fmt"
-	"github.com/yametech/global-ipam/pkg/store"
 	"log"
 	"net"
 	"os"
 	"strconv"
 
-	"github.com/containernetworking/cni/pkg/types/current"
+	"github.com/yametech/global-ipam/pkg/store"
+
+	typesVer "github.com/containernetworking/cni/pkg/types/040"
 	"github.com/containernetworking/plugins/pkg/ip"
 )
 
@@ -41,7 +42,7 @@ func NewIPAllocator(s *RangeSet, store store.Store, id int) *IPAllocator {
 }
 
 // Get allocates an IP
-func (a *IPAllocator) Get(id string, requestedIP net.IP) (*current.IPConfig, error) {
+func (a *IPAllocator) Get(id string, requestedIP net.IP) (*typesVer.IPConfig, error) {
 	a.store.Lock()
 	defer a.store.Unlock()
 
@@ -113,7 +114,7 @@ func (a *IPAllocator) Get(id string, requestedIP net.IP) (*current.IPConfig, err
 		version = "6"
 	}
 
-	return &current.IPConfig{
+	return &typesVer.IPConfig{
 		Version: version,
 		Address: *reservedIP,
 		Gateway: gw,

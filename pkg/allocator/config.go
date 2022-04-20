@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"net"
 
-	types020 "github.com/containernetworking/cni/pkg/types/020"
-
 	"github.com/containernetworking/cni/pkg/types"
 )
 
@@ -50,14 +48,7 @@ type IPAMConfig struct {
 	ResolvConf string         `json:"resolvConf"`
 	Ranges     []RangeSet     `json:"ranges"`
 	IPArgs     []net.IP       `json:"-"` // Requested IPs from CNI_ARGS and args
-	EtcdConfig *EtcdConfig    `json:"etcdConfig"`
-}
-
-type EtcdConfig struct {
-	EtcdURL               string `json:"etcdURL"`
-	EtcdCertFile          string `json:"etcdCertFile"`
-	EtcdKeyFile           string `json:"etcdKeyFile"`
-	EtcdTrustedCAFileFile string `json:"etcdTrustedCAFileFile"`
+	config     any            `json:"config"`
 }
 
 type IPAMEnvArgs struct {
@@ -144,13 +135,13 @@ func LoadIPAMConfig(bytes []byte, envArgs string) (*IPAMConfig, string, error) {
 	}
 
 	// CNI spec 0.2.0 and below supported only one v4 and v6 address
-	if numV4 > 1 || numV6 > 1 {
-		for _, v := range types020.SupportedVersions {
-			if n.CNIVersion == v {
-				return nil, "", fmt.Errorf("CNI version %v does not support more than 1 address per family", n.CNIVersion)
-			}
-		}
-	}
+	// if numV4 > 1 || numV6 > 1 {
+	// 	for _, v := range types.SupportedVersions {
+	// 		if n.CNIVersion == v {
+	// 			return nil, "", fmt.Errorf("CNI version %v does not support more than 1 address per family", n.CNIVersion)
+	// 		}
+	// 	}
+	// }
 
 	// Check for overlaps
 	l := len(n.IPAM.Ranges)

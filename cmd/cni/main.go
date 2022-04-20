@@ -2,48 +2,48 @@ package main
 
 import (
 	"fmt"
-	"github.com/containernetworking/cni/pkg/skel"
-	"github.com/containernetworking/cni/pkg/types"
-	"github.com/containernetworking/cni/pkg/types/current"
-	"github.com/containernetworking/cni/pkg/version"
-	bv "github.com/containernetworking/plugins/pkg/utils/buildversion"
-	"github.com/yametech/global-ipam/pkg/allocator"
-	"github.com/yametech/global-ipam/pkg/dns"
-	"github.com/yametech/global-ipam/pkg/etcd"
+
 	"net"
 	"strings"
+
+	"github.com/containernetworking/cni/pkg/skel"
+	"github.com/containernetworking/cni/pkg/types"
+	typesVer "github.com/containernetworking/cni/pkg/types/040"
+	"github.com/containernetworking/cni/pkg/version"
+	"github.com/containernetworking/plugins/pkg/utils/buildversion"
+	"github.com/yametech/global-ipam/pkg/allocator"
+	"github.com/yametech/global-ipam/pkg/client"
+	"github.com/yametech/global-ipam/pkg/dns"
 )
 
 const PluginName = "global-ipam"
 
 func main() {
-	skel.PluginMain(cmdAdd, cmdChek, cmdDel, version.All, bv.BuildString(PluginName))
+	skel.PluginMain(cmdAdd, cmdChek, cmdDel, version.All, buildversion.BuildString(PluginName))
 }
 
-func cmdChek(args *skel.CmdArgs) error {
-	return nil
-}
+func cmdChek(args *skel.CmdArgs) error { return nil }
 
 func cmdAdd(args *skel.CmdArgs) error {
-	_IPAMConfig, confVersion, err := allocator.LoadIPAMConfig(args.StdinData, args.Args)
+	ipamConfig, confVersion, err := allocator.LoadIPAMConfig(args.StdinData, args.Args)
 	if err != nil {
 		return err
 	}
+	result := &typesVer.Result{}
 
-	result := &current.Result{}
-
-	if _IPAMConfig.ResolvConf != "" {
-		dns, err := dns.ParseResolvConf(_IPAMConfig.ResolvConf)
+	if ipamConfig.ResolvConf != "" {
+		dns, err := dns.ParseResolvConf(ipamConfig.ResolvConf)
 		if err != nil {
 			return err
 		}
 		result.DNS = *dns
 	}
 
-	store, err := etcd.New(_IPAMConfig.Name, _IPAMConfig)
+	store, err := client.New(ipamConfig.Name, ipamConfig)
 	if err != nil {
 		return err
 	}
+	
 	defer store.Close()
 
 	// Keep the allocators we used, so we can release all IPs if an error
@@ -53,12 +53,11 @@ func cmdAdd(args *skel.CmdArgs) error {
 	// store all requested IPs in a map, so we can easily remove ones we use
 	// and error if some remain
 	requestedIPs := map[string]net.IP{} //net.IP cannot be a key
-
-	for _, ip := range _IPAMConfig.IPArgs {
+	for _, ip := range ipamConfig.IPArgs {
 		requestedIPs[ip.String()] = ip
 	}
 
-	for idx, rangeSet := range _IPAMConfig.Ranges {
+	for idx, rangeSet := range ipamConfig.Ranges {
 		allocator := allocator.NewIPAllocator(&rangeSet, store, idx)
 
 		// Check to see if there are any custom IPs requested in this range.
@@ -97,18 +96,18 @@ func cmdAdd(args *skel.CmdArgs) error {
 		return fmt.Errorf(errStr)
 	}
 
-	result.Routes = _IPAMConfig.Routes
+	result.Routes = ipamConfig.Routes
 
 	return types.PrintResult(result, confVersion)
 }
 
 func cmdDel(args *skel.CmdArgs) error {
-	_IPAMConfig, _, err := allocator.LoadIPAMConfig(args.StdinData, args.Args)
+	ipamConfig, _, err := allocator.LoadIPAMConfig(args.StdinData, args.Args)
 	if err != nil {
 		return err
 	}
 
-	store, err := etcd.New(_IPAMConfig.Name, _IPAMConfig)
+	store, err := client.New(ipamConfig.Name, ipamConfig)
 	if err != nil {
 		return err
 	}
@@ -116,9 +115,8 @@ func cmdDel(args *skel.CmdArgs) error {
 
 	// Loop through all ranges, releasing all IPs, even if an error occurs
 	var errors []string
-	for idx, rangeSet := range _IPAMConfig.Ranges {
+	for idx, rangeSet := range ipamConfig.Ranges {
 		ipAllocator := allocator.NewIPAllocator(&rangeSet, store, idx)
-
 		err := ipAllocator.Release(args.ContainerID)
 		if err != nil {
 			errors = append(errors, err.Error())

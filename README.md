@@ -6,21 +6,19 @@ kubectl apply -f deploy/
 ## on linux system
 ```
 mkdir -p /opt/cni/bin/ && cd  /opt/cni/bin/
-```
 
 ## install plugin
-```
 git clone https://github.com/containernetworking/plugins.git
 cd plugins
+## install plugin
+
 ```
-
-
 
 ## install cnitool
 ```
 git clone https://github.com/containernetworking/cni.git
-cd cnitool/
-go install
+cd cni/cnitool/
+go build -o /usr/local/bin/cnitool cnitool.go
 
 cnitool
 
@@ -30,8 +28,6 @@ cnitool add   <net> <netns>
 cnitool check <net> <netns>
 cnitool del   <net> <netns>
 ```
-
-
 
 
 git clone https://github.com/yametech/global-ipam.git

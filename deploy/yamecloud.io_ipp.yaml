@@ -1,0 +1,60 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.8.0
+  creationTimestamp: null
+  name: ipp.yamecloud.io
+spec:
+  group: yamecloud.io
+  names:
+    kind: IPPool
+    listKind: IPPoolList
+    plural: ipp
+    singular: ippool
+  scope: Cluster
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              ips:
+                items:
+                  description: "An IP is a single IP address, a slice of bytes. Functions
+                    in this package accept either 4-byte (IPv4) or 16-byte (IPv6)
+                    slices as input. \n Note that in this documentation, referring
+                    to an IP address as an IPv4 address or an IPv6 address is a semantic
+                    property of the address, not just the length of the byte slice:
+                    a 16-byte slice can still be an IPv4 address."
+                  format: byte
+                  type: string
+                type: array
+            required:
+            - ips
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

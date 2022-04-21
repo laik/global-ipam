@@ -18,6 +18,11 @@ import "net"
 
 const UNIX_SOCK_PATH = "/var/run/global-ipam.sock"
 
+type Request struct{}
+type Response struct {
+	LastReservedIP net.IP `json:"lastReservedIP"`
+}
+
 type Store interface {
 	Lock() error
 	Unlock() error

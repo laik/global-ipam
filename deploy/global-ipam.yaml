@@ -47,8 +47,8 @@ spec:
       dnsPolicy: ClusterFirst
       nodeSelector:
         kubernetes.io/os: linux
-      serviceAccountName: yamecloud-apps
-      serviceAccount: yamecloud-apps
+      serviceAccountName: global-ipam
+      serviceAccount: global-ipam
       hostNetwork: true
       hostPID: true
       tolerations:

@@ -24,7 +24,12 @@ func main() {
 		cancel()
 	}()
 
-	if err := server.NewServer(ctx).Start(); err != nil {
+	s, err := server.NewServer(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := s.Start(); err != nil {
 		panic(err)
 	}
 

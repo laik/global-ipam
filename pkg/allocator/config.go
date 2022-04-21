@@ -48,7 +48,7 @@ type IPAMConfig struct {
 	ResolvConf string         `json:"resolvConf"`
 	Ranges     []RangeSet     `json:"ranges"`
 	IPArgs     []net.IP       `json:"-"` // Requested IPs from CNI_ARGS and args
-	config     any            `json:"config"`
+	Config     any            `json:"config"`
 }
 
 type IPAMEnvArgs struct {

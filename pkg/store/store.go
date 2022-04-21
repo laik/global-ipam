@@ -18,11 +18,6 @@ import "net"
 
 const UNIX_SOCK_PATH = "/var/run/global-ipam.sock"
 
-type Request struct{}
-type Response struct {
-	LastReservedIP net.IP `json:"lastReservedIP"`
-}
-
 type Store interface {
 	Lock() error
 	Unlock() error
@@ -31,4 +26,13 @@ type Store interface {
 	LastReservedIP(rangeID string) (net.IP, error)
 	Release(ip net.IP) error
 	ReleaseByID(id string) error
+}
+
+type LastReservedIPResponse struct {
+	IP    net.IP `json:"ip"`
+	Error error  `json:"error"`
+}
+type ReserveResponse struct {
+	Reserved bool  `json:"reserved"`
+	Error    error `json:"error"`
 }

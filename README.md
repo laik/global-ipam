@@ -37,13 +37,10 @@ cat >/etc/cni/net.d/10-macvlan-global-ipam.conf  << "EOF"
 {
     "name": "macvlan-global-ipam",
     "type": "macvlan",
-    "master": "ens192",
+    "master": "eth0",
     "ipam": {
         "name": "global-ipam",
         "type": "global-ipam",
-        "etcdConfig": {
-        "etcdURL": "http://10.200.100.200:42379"
-        },
         "subnet": "10.22.0.0/16",
         "rangeStart": "10.22.0.2",
         "rangeEnd": "10.22.0.254",
@@ -58,7 +55,8 @@ export CNI_PATH=/opt/cni/bin/
 ip netns delete a
 
 # if not exists create
-ip netns add a && cnitool add macvlan-global-ipam /var/run/netns/a
+ip netns add a
+cnitool add macvlan-global-ipam /var/run/netns/a
 
 # check ns ip addr
 ip netns exec a ip addr

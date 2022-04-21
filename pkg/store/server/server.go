@@ -48,8 +48,9 @@ func NewServer(ctx context.Context) (*Server, error) {
 	s.Interface = k8sclient
 
 	{
-		route.POST("/last-reserved-ip/:rangeId", s.LastReservedIP)
-		route.POST("/release-by-id/:id", s.ReleaseByID)
+		route.POST("/last-reserved-ip", s.LastReservedIP)
+		route.POST("/release-by-id", s.ReleaseByID)
+		route.POST("/reserve", s.Reserve)
 	}
 
 	return s, nil
@@ -74,17 +75,6 @@ func (s *Server) Start() error {
 	return s.Serve(unixListener)
 }
 
-func (s *Server) LastReservedIP(g *gin.Context) {
-	rangeId := g.Param("rangeId")
-	g.JSON(http.StatusOK, rangeId)
-
-}
-
-func (s *Server) ReleaseByID(g *gin.Context) {
-	id := g.Param("id")
-	g.JSON(http.StatusOK, id)
-
-}
 
 func createRestConfig() (*rest.Config, error) {
 	if common.InCluster {

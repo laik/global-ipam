@@ -33,15 +33,17 @@ func New(name string, IPAMConfig *allocator.IPAMConfig) (store.Store, error) {
 func (*Client) Close() error { return nil }
 
 // LastReservedIP implements store.Store
-func (c *Client) LastReservedIP(rangeID string) (net.IP, error) {
-	resp, err := c.cli.R().Get(fmt.Sprintf("/last-reserved-ip/%s", rangeID))
+func (c *Client) LastReservedIP(rangeId string) (net.IP, error) {
+	r := &store.LastReservedIPResponse{}
+	_, err := c.cli.R().
+		SetHeader("Content-Type", "application/json").
+		SetFormData(map[string]string{"rangeId": rangeId}).
+		SetResult(r).
+		Post(fmt.Sprintf("/last-reserved-ip"))
 	if err != nil {
 		return nil, err
 	}
-	_ = resp
-	// json.Unmarshal(resp.Body(), &ip)
-
-	return nil, nil
+	return r.IP, nil
 }
 
 // Lock implements store.Store
@@ -51,35 +53,47 @@ func (c *Client) Lock() error {
 }
 
 // Release implements store.Store
-func (*Client) Release(ip net.IP) error {
-	panic("unimplemented")
+func (c *Client) Release(ip net.IP) error {
+
+	_, err := c.cli.R().
+		SetHeader("Content-Type", "application/json").
+		SetFormData(map[string]string{"ip": ip.String()}).
+		Post("/release")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ReleaseByID implements store.Store
 // N.B. This function eats errors to be tolerant and release as much as possible
-func (*Client) ReleaseByID(id string) error {
-	// 	key := s.EtcdKeyPrefix + "/used/"
-	// 	resp, err := s.EtcdClient.Get(context.TODO(), key, clientv3.WithPrefix())
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	if len(resp.Kvs) > 0 {
-	// 		for _, kv := range resp.Kvs {
-	// 			if string(kv.Value) == id {
-	// 				_, err = s.EtcdClient.Delete(context.TODO(), string(kv.Key))
-	// 				if err != nil {
-	// 					return err
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	return nil
+func (c *Client) ReleaseByID(id string) error {
+	_, err := c.cli.R().
+		SetHeader("Content-Type", "application/json").
+		SetFormData(map[string]string{"id": id}).
+		Post("/release-by-id")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // Reserve implements store.Store
-func (*Client) Reserve(id string, ip net.IP, rangeID string) (bool, error) {
-	panic("unimplemented")
+func (c *Client) Reserve(id string, ip net.IP, rangeId string) (bool, error) {
+	r := &store.ReserveResponse{}
+	_, err := c.cli.R().
+		SetHeader("Content-Type", "application/json").
+		SetFormData(map[string]string{
+			"id":      id,
+			"ip":      ip.String(),
+			"rangeId": rangeId,
+		}).
+		SetResult(r).
+		Post("/reserve")
+	if err != nil {
+		return false, err
+	}
+	return r.Reserved, nil
 }
 
 // Unlock implements store.Store
@@ -94,7 +108,6 @@ func NewCniClient(socketAddress string) *CniClient {
 			return net.Dial("unix", store.UNIX_SOCK_PATH)
 		},
 	}
-
 	// Create a Resty Client
 	client := resty.NewWithClient(&http.Client{Transport: &transport}).
 		SetScheme("http").

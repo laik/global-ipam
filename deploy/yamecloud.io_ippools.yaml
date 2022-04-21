@@ -5,13 +5,13 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
   creationTimestamp: null
-  name: ipp.yamecloud.io
+  name: ippools.yamecloud.io
 spec:
   group: yamecloud.io
   names:
     kind: IPPool
     listKind: IPPoolList
-    plural: ipp
+    plural: ippools
     singular: ippool
   scope: Cluster
   versions:
@@ -35,13 +35,6 @@ spec:
             properties:
               ips:
                 items:
-                  description: "An IP is a single IP address, a slice of bytes. Functions
-                    in this package accept either 4-byte (IPv4) or 16-byte (IPv6)
-                    slices as input. \n Note that in this documentation, referring
-                    to an IP address as an IPv4 address or an IPv6 address is a semantic
-                    property of the address, not just the length of the byte slice:
-                    a 16-byte slice can still be an IPv4 address."
-                  format: byte
                   type: string
                 type: array
             required:

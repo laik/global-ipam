@@ -74,7 +74,7 @@ type Range struct {
 func LoadIPAMConfig(bytes []byte, envArgs string) (*IPAMConfig, string, error) {
 	n := Net{}
 	if err := json.Unmarshal(bytes, &n); err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("failed to load netconf: %v", err)
 	}
 
 	if n.IPAM == nil {

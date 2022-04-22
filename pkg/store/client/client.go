@@ -58,10 +58,11 @@ func (c *Client) Lock() error {
 
 // Release implements store.Store
 func (c *Client) Release(ip net.IP) error {
-
+	r := &store.ReleaseResponse{}
 	_, err := c.cli.R().
 		SetHeader("Content-Type", "application/json").
 		SetFormData(map[string]string{"ip": ip.String()}).
+		SetResult(r).
 		Post("/release")
 	if err != nil {
 		return err

@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"sort"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -14,16 +16,21 @@ type IPPool struct {
 }
 
 type IPList []string
-
 type IPPoolSpec struct {
 	Ips map[string]IPList `json:"ips"`
 }
 
-func (spec IPPoolSpec) Last(id string) string {
-	if ips, ok := spec.Ips[id]; ok {
-		return ips[len(ips)-1]
+func (spec IPPoolSpec) Last() string {
+	ips := make(IPList, 0)
+	for _, i := range spec.Ips {
+		ips = append(ips, i...)
 	}
-	return ""
+	sort.StringSlice(ips).Sort()
+	return ips[len(ips)-1]
+}
+
+func (spec IPPoolSpec) Release(id string) {
+	delete(spec.Ips, id)
 }
 
 func (spec IPPoolSpec) Find(id, ip string) bool {

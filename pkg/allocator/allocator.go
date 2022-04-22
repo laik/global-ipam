@@ -23,7 +23,7 @@ import (
 
 	"github.com/yametech/global-ipam/pkg/store"
 
-	typesVer "github.com/containernetworking/cni/pkg/types/040"
+	typesVer "github.com/containernetworking/cni/pkg/types/100"
 	"github.com/containernetworking/plugins/pkg/ip"
 )
 
@@ -89,7 +89,7 @@ func (a *IPAllocator) Get(containerId string, requestedIP net.IP) (*typesVer.IPC
 		if err != nil {
 			return nil, err
 		}
-		
+
 		for {
 			reservedIP, gw = iter.Next()
 			if reservedIP == nil {
@@ -111,13 +111,13 @@ func (a *IPAllocator) Get(containerId string, requestedIP net.IP) (*typesVer.IPC
 		return nil, fmt.Errorf("no IP addresses available in range set: %s", a.rangeset.String())
 	}
 
-	version := "4"
-	if reservedIP.IP.To4() == nil {
-		version = "6"
-	}
+	// version := "4"
+	// if reservedIP.IP.To4() == nil {
+	// 	version = "6"
+	// }
 
 	return &typesVer.IPConfig{
-		Version: version,
+		// Version: version,
 		Address: *reservedIP,
 		Gateway: gw,
 	}, nil

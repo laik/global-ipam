@@ -39,3 +39,7 @@ type ReserveResponse struct {
 	Reserved bool  `json:"reserved"`
 	Error    error `json:"error"`
 }
+type ReleaseResponse struct {
+	IsRelease bool  `json:"isRelease"`
+	Error     error `json:"error"`
+}

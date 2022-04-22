@@ -20,6 +20,7 @@ import (
 	"net"
 
 	"github.com/containernetworking/cni/pkg/types"
+	"github.com/containernetworking/cni/pkg/version"
 )
 
 // The top-level network config - IPAM plugins are passed the full configuration
@@ -108,6 +109,7 @@ func LoadIPAMConfig(bytes []byte, envArgs string) (*IPAMConfig, string, error) {
 	if n.IPAM.Range != nil && n.IPAM.Range.Subnet.IP != nil {
 		n.IPAM.Ranges = append([]RangeSet{{*n.IPAM.Range}}, n.IPAM.Ranges...)
 	}
+
 	n.IPAM.Range = nil
 
 	// If a range is supplied as a runtime config, prepend it to the Ranges
@@ -135,13 +137,13 @@ func LoadIPAMConfig(bytes []byte, envArgs string) (*IPAMConfig, string, error) {
 	}
 
 	// CNI spec 0.2.0 and below supported only one v4 and v6 address
-	// if numV4 > 1 || numV6 > 1 {
-	// 	for _, v := range types.SupportedVersions {
-	// 		if n.CNIVersion == v {
-	// 			return nil, "", fmt.Errorf("CNI version %v does not support more than 1 address per family", n.CNIVersion)
-	// 		}
-	// 	}
-	// }
+	if numV4 > 1 || numV6 > 1 {
+		for _, v := range version.All.SupportedVersions() {
+			if n.CNIVersion == v {
+				return nil, "", fmt.Errorf("CNI version %v does not support more than 1 address per family", n.CNIVersion)
+			}
+		}
+	}
 
 	// Check for overlaps
 	l := len(n.IPAM.Ranges)

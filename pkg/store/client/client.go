@@ -32,6 +32,10 @@ func New(name string, IPAMConfig *allocator.IPAMConfig) (store.Store, error) {
 // Close implements store.Store
 func (*Client) Close() error { return nil }
 
+func (c *Client) GetByID(id, ip string) (net.IP, error) {
+	return nil, nil
+}
+
 // LastReservedIP implements store.Store
 func (c *Client) LastReservedIP(rangeId string) (net.IP, error) {
 	r := &store.LastReservedIPResponse{}
@@ -43,7 +47,7 @@ func (c *Client) LastReservedIP(rangeId string) (net.IP, error) {
 	if err != nil {
 		return nil, err
 	}
-	return r.IP, nil
+	return net.ParseIP(r.IP), nil
 }
 
 // Lock implements store.Store

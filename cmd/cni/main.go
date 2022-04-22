@@ -19,12 +19,12 @@ import (
 const PluginName = "global-ipam"
 
 func main() {
-	skel.PluginMain(cmdAdd, cmdChek, cmdDel, version.All, buildversion.BuildString(PluginName))
+	skel.PluginMain(add, chek, del, version.All, buildversion.BuildString(PluginName))
 }
 
-func cmdChek(args *skel.CmdArgs) error { return nil }
+func chek(args *skel.CmdArgs) error { return nil }
 
-func cmdAdd(args *skel.CmdArgs) error {
+func add(args *skel.CmdArgs) error {
 	ipamConfig, confVersion, err := allocator.LoadIPAMConfig(args.StdinData, args.Args)
 	if err != nil {
 		return err
@@ -89,10 +89,12 @@ func cmdAdd(args *skel.CmdArgs) error {
 		for _, alloc := range allocators {
 			_ = alloc.Release(args.ContainerID)
 		}
+		
 		errStr := "failed to allocate all requested IPs:"
 		for _, ip := range requestedIPs {
 			errStr = errStr + " " + ip.String()
 		}
+		
 		return fmt.Errorf(errStr)
 	}
 
@@ -101,7 +103,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 	return types.PrintResult(result, confVersion)
 }
 
-func cmdDel(args *skel.CmdArgs) error {
+func del(args *skel.CmdArgs) error {
 	ipamConfig, _, err := allocator.LoadIPAMConfig(args.StdinData, args.Args)
 	if err != nil {
 		return err

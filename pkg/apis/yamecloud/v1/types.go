@@ -13,8 +13,28 @@ type IPPool struct {
 	Spec IPPoolSpec `json:"spec"`
 }
 
+type IPList []string
+
 type IPPoolSpec struct {
-	Ips []string `json:"ips"`
+	Ips map[string]IPList `json:"ips"`
+}
+
+func (spec IPPoolSpec) Last(id string) string {
+	if ips, ok := spec.Ips[id]; ok {
+		return ips[len(ips)-1]
+	}
+	return ""
+}
+
+func (spec IPPoolSpec) Find(id, ip string) bool {
+	if ips, ok := spec.Ips[id]; ok {
+		for _, i := range ips {
+			if i == ip {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

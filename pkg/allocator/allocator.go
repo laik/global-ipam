@@ -30,19 +30,19 @@ import (
 type IPAllocator struct {
 	rangeset *RangeSet
 	store    store.Store
-	rangeID  string // Used for tracking last reserved ip
+	rangeId  string // Used for tracking last reserved ip
 }
 
 func NewIPAllocator(s *RangeSet, store store.Store, id int) *IPAllocator {
 	return &IPAllocator{
 		rangeset: s,
 		store:    store,
-		rangeID:  strconv.Itoa(id),
+		rangeId:  strconv.Itoa(id),
 	}
 }
 
 // Get allocates an IP
-func (a *IPAllocator) Get(id string, requestedIP net.IP) (*typesVer.IPConfig, error) {
+func (a *IPAllocator) Get(containerId string, requestedIP net.IP) (*typesVer.IPConfig, error) {
 	a.store.Lock()
 	defer a.store.Unlock()
 
@@ -63,39 +63,40 @@ func (a *IPAllocator) Get(id string, requestedIP net.IP) (*typesVer.IPConfig, er
 			return nil, fmt.Errorf("requested ip %s is subnet's gateway", requestedIP.String())
 		}
 
-		reserved, err := a.store.Reserve(id, requestedIP, a.rangeID)
+		reserved, err := a.store.Reserve(containerId, requestedIP, a.rangeId)
+
 		if err != nil {
 			return nil, err
 		}
+
 		if !reserved {
 			return nil, fmt.Errorf("requested IP address %s is not available in range set %s", requestedIP, a.rangeset.String())
 		}
+
 		reservedIP = &net.IPNet{IP: requestedIP, Mask: r.Subnet.Mask}
 		gw = r.Gateway
 
 	} else {
-		// try to get allocated IPs for this given id, if exists, just return error
-		// because duplicate allocation is not allowed in SPEC
-		// https://github.com/containernetworking/cni/blob/master/SPEC.md
-		//allocatedIPs := a.store.GetByID(id, ifname)
-		//for _, allocatedIP := range allocatedIPs {
-		//	// check whether the existing IP belong to this range set
-		//	if _, err := a.rangeset.RangeFor(allocatedIP); err == nil {
-		//		return nil, fmt.Errorf("%s has been allocated to %s, duplicate allocation is not allowed", allocatedIP.String(), id)
-		//	}
-		//}
+		// allocatedIPs := a.store.GetByID(id, requestedIP.String())
+		// for _, allocatedIP := range allocatedIPs {
+		// 	// check whether the existing IP belong to this range set
+		// 	if _, err := a.rangeset.RangeFor(allocatedIP); err == nil {
+		// 		return nil, fmt.Errorf("%s has been allocated to %s, duplicate allocation is not allowed", allocatedIP.String(), id)
+		// 	}
+		// }
 
 		iter, err := a.GetIter()
 		if err != nil {
 			return nil, err
 		}
+		
 		for {
 			reservedIP, gw = iter.Next()
 			if reservedIP == nil {
 				break
 			}
 
-			reserved, err := a.store.Reserve(id, reservedIP.IP, a.rangeID)
+			reserved, err := a.store.Reserve(containerId, reservedIP.IP, a.rangeId)
 			if err != nil {
 				return nil, err
 			}
@@ -109,6 +110,7 @@ func (a *IPAllocator) Get(id string, requestedIP net.IP) (*typesVer.IPConfig, er
 	if reservedIP == nil {
 		return nil, fmt.Errorf("no IP addresses available in range set: %s", a.rangeset.String())
 	}
+
 	version := "4"
 	if reservedIP.IP.To4() == nil {
 		version = "6"
@@ -158,7 +160,7 @@ func (a *IPAllocator) GetIter() (*RangeIter, error) {
 
 	// We might get a last reserved IP that is wrong if the range indexes changed.
 	// This is not critical, we just lose round-robin this one time.
-	lastReservedIP, err := a.store.LastReservedIP(a.rangeID)
+	lastReservedIP, err := a.store.LastReservedIP(a.rangeId)
 	if err != nil && !os.IsNotExist(err) {
 		log.Printf("Error retrieving last reserved ip: %v", err)
 	} else if lastReservedIP != nil {

@@ -34,9 +34,11 @@ spec:
           spec:
             properties:
               ips:
-                items:
-                  type: string
-                type: array
+                additionalProperties:
+                  items:
+                    type: string
+                  type: array
+                type: object
             required:
             - ips
             type: object

@@ -18,13 +18,35 @@ import (
 var IPPool = schema.GroupVersionResource{Group: "yamecloud.io", Version: "v1", Resource: "ippools"}
 
 func (s *Server) LastReservedIP(g *gin.Context) {
+	defaultResponse := &store.LastReservedIPResponse{}
+	
 	rangeId := g.PostForm("rangeId")
-	g.JSON(http.StatusOK, rangeId)
+	log.G(g.Request.Context()).Info("last reserver ip by rangeId", rangeId)
+
+	ipPoolUnstructed, err := s.Interface.Resource(IPPool).Get(g.Request.Context(), store.GLOBAL_IPAM, metav1.GetOptions{})
+	if err != nil {
+		defaultResponse.Error = err
+		g.JSON(http.StatusOK, defaultResponse)
+		return
+	}
+
+	ippRuntime := &v1.IPPool{}
+	err = runtime.DefaultUnstructuredConverter.FromUnstructured(ipPoolUnstructed.UnstructuredContent(), ippRuntime)
+	if err != nil {
+		g.JSON(http.StatusOK, defaultResponse)
+		return
+	}
+
+	ippRuntime.Spec.Last(rangeId)
+
+	_ = ipPoolUnstructed
+	g.JSON(http.StatusOK, defaultResponse)
 
 }
 
 func (s *Server) ReleaseByID(g *gin.Context) {
 	id := g.PostForm("id")
+	log.G(g.Request.Context()).Info("release by id", "id", id)
 	g.JSON(http.StatusOK, id)
 }
 
@@ -34,22 +56,23 @@ func (s *Server) Reserve(g *gin.Context) {
 	ip := g.PostForm("ip") // 10.0.0.x
 
 	defaultResponse := &store.ReserveResponse{Reserved: false}
-	ippUnstructed, err := s.Interface.Resource(IPPool).Get(g.Request.Context(), id, metav1.GetOptions{})
+	ipPoolUnstructed, err := s.Interface.Resource(IPPool).Get(g.Request.Context(), store.GLOBAL_IPAM, metav1.GetOptions{})
 	if err != nil {
-		if errors.IsNotFound(err) {
-			ippUnstructed = &unstructured.Unstructured{
+		switch {
+		case errors.IsNotFound(err):
+			ipPoolUnstructed = &unstructured.Unstructured{
 				Object: map[string]interface{}{
 					"apiVersion": "yamecloud.io/v1",
 					"kind":       "IPPool",
 					"metadata": map[string]interface{}{
-						"name": id,
+						"name": store.GLOBAL_IPAM,
 					},
 					"spec": map[string]interface{}{
-						"ips": make([]string, 0),
+						"ips": make(map[string]string),
 					},
 				},
 			}
-			ippUnstructed, err = s.Interface.Resource(IPPool).Create(g.Request.Context(), ippUnstructed, metav1.CreateOptions{})
+			ipPoolUnstructed, err = s.Interface.Resource(IPPool).Create(g.Request.Context(), ipPoolUnstructed, metav1.CreateOptions{})
 			if err != nil {
 				defaultResponse.Error = fmt.Errorf("create ippool failed: %v", err)
 				log.G(g.Request.Context()).Error(defaultResponse.Error)
@@ -57,6 +80,10 @@ func (s *Server) Reserve(g *gin.Context) {
 				return
 			}
 			goto RESERVE
+
+		case errors.IsAlreadyExists(err):
+			goto RESERVE
+
 		}
 		g.JSON(http.StatusOK, defaultResponse)
 		return
@@ -64,22 +91,28 @@ func (s *Server) Reserve(g *gin.Context) {
 
 RESERVE:
 	ippRuntime := &v1.IPPool{}
-	err = runtime.DefaultUnstructuredConverter.FromUnstructured(ippUnstructed.UnstructuredContent(), ippRuntime)
+	err = runtime.DefaultUnstructuredConverter.FromUnstructured(ipPoolUnstructed.UnstructuredContent(), ippRuntime)
 	if err != nil {
 		g.JSON(http.StatusOK, defaultResponse)
 		return
 	}
 
-	ippRuntime.Spec.Ips = append(ippRuntime.Spec.Ips, ip)
+	if ippRuntime.Spec.Find(id, ip) {
+		g.JSON(http.StatusOK, defaultResponse)
+		return
+	}
+
+	ippRuntime.Spec.Ips[id] = append(ippRuntime.Spec.Ips[id], ip)
 
 	obj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(ippRuntime)
 	if err != nil {
 		g.JSON(http.StatusOK, defaultResponse)
 		return
 	}
-	ippUnstructed.Object = obj
 
-	_, err = s.Interface.Resource(IPPool).Update(g.Request.Context(), ippUnstructed, metav1.UpdateOptions{})
+	ipPoolUnstructed.Object = obj
+
+	_, err = s.Interface.Resource(IPPool).Update(g.Request.Context(), ipPoolUnstructed, metav1.UpdateOptions{})
 	if err != nil {
 		g.JSON(http.StatusOK, defaultResponse)
 		return

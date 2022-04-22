@@ -16,12 +16,30 @@ package store
 
 import "net"
 
+const GLOBAL_IPAM = "global-ipam"
+
+const UNIX_SOCK_PATH = "/var/run/global-ipam.sock"
+
 type Store interface {
 	Lock() error
 	Unlock() error
 	Close() error
+	GetByID(id, ip string) (net.IP, error)
 	Reserve(id string, ip net.IP, rangeID string) (bool, error)
 	LastReservedIP(rangeID string) (net.IP, error)
 	Release(ip net.IP) error
 	ReleaseByID(id string) error
+}
+
+type LastReservedIPResponse struct {
+	IP    string `json:"ip"`
+	Error error  `json:"error"`
+}
+type ReserveResponse struct {
+	Reserved bool  `json:"reserved"`
+	Error    error `json:"error"`
+}
+type ReleaseResponse struct {
+	IsRelease bool  `json:"isRelease"`
+	Error     error `json:"error"`
 }

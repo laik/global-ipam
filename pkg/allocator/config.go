@@ -19,9 +19,8 @@ import (
 	"fmt"
 	"net"
 
-	types020 "github.com/containernetworking/cni/pkg/types/020"
-
 	"github.com/containernetworking/cni/pkg/types"
+	"github.com/containernetworking/cni/pkg/version"
 )
 
 // The top-level network config - IPAM plugins are passed the full configuration
@@ -50,14 +49,7 @@ type IPAMConfig struct {
 	ResolvConf string         `json:"resolvConf"`
 	Ranges     []RangeSet     `json:"ranges"`
 	IPArgs     []net.IP       `json:"-"` // Requested IPs from CNI_ARGS and args
-	EtcdConfig *EtcdConfig    `json:"etcdConfig"`
-}
-
-type EtcdConfig struct {
-	EtcdURL               string `json:"etcdURL"`
-	EtcdCertFile          string `json:"etcdCertFile"`
-	EtcdKeyFile           string `json:"etcdKeyFile"`
-	EtcdTrustedCAFileFile string `json:"etcdTrustedCAFileFile"`
+	Config     any            `json:"config"`
 }
 
 type IPAMEnvArgs struct {
@@ -82,7 +74,7 @@ type Range struct {
 func LoadIPAMConfig(bytes []byte, envArgs string) (*IPAMConfig, string, error) {
 	n := Net{}
 	if err := json.Unmarshal(bytes, &n); err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("failed to load netconf: %v", err)
 	}
 
 	if n.IPAM == nil {
@@ -117,6 +109,7 @@ func LoadIPAMConfig(bytes []byte, envArgs string) (*IPAMConfig, string, error) {
 	if n.IPAM.Range != nil && n.IPAM.Range.Subnet.IP != nil {
 		n.IPAM.Ranges = append([]RangeSet{{*n.IPAM.Range}}, n.IPAM.Ranges...)
 	}
+
 	n.IPAM.Range = nil
 
 	// If a range is supplied as a runtime config, prepend it to the Ranges
@@ -145,7 +138,7 @@ func LoadIPAMConfig(bytes []byte, envArgs string) (*IPAMConfig, string, error) {
 
 	// CNI spec 0.2.0 and below supported only one v4 and v6 address
 	if numV4 > 1 || numV6 > 1 {
-		for _, v := range types020.SupportedVersions {
+		for _, v := range version.All.SupportedVersions() {
 			if n.CNIVersion == v {
 				return nil, "", fmt.Errorf("CNI version %v does not support more than 1 address per family", n.CNIVersion)
 			}

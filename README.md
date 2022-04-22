@@ -33,6 +33,8 @@ cnitool del   <net> <netns>
 ```
 
 git clone https://github.com/yametech/global-ipam.git
+cd global-ipam 
+rm -rf /usr/local/bin/global-ipam && go build -o /usr/local/bin/global-ipam cmd/cni/main.go
 
 ```
 cat >/etc/cni/net.d/10-macvlan-global-ipam.conf  << "EOF"
@@ -48,7 +50,7 @@ cat >/etc/cni/net.d/10-macvlan-global-ipam.conf  << "EOF"
         "rangeStart": "10.211.55.30",
         "rangeEnd": "10.211.55.50",
         "routes": [{ "dst": "0.0.0.0/0" }],
-        "gateway": "10.211.55.1",
+        "gateway": "10.211.55.1"
     }
 }
 EOF

@@ -30,11 +30,14 @@ cnitool: Add, check, or remove network interfaces from a network namespace
 cnitool add   <net> <netns>
 cnitool check <net> <netns>
 cnitool del   <net> <netns>
-```
+
 
 git clone https://github.com/yametech/global-ipam.git
-cd global-ipam 
+cd global-ipam
 rm -rf /usr/local/bin/global-ipam && go build -o /usr/local/bin/global-ipam cmd/cni/main.go
+```
+
+## install macvlan & global-ipam config
 
 ```
 cat >/etc/cni/net.d/10-macvlan-global-ipam.conf  << "EOF"
@@ -61,7 +64,6 @@ export CNI_PATH=/opt/cni/bin/
 ip netns delete a
 
 # if not exists create
-```
 
 ip netns add a
 cnitool add macvlan-global-ipam /var/run/netns/a
@@ -70,14 +72,7 @@ cnitool del macvlan-global-ipam /var/run/netns/a
 ```
 
 # check ns ip addr
-```
 
+```
 ip netns exec a ip addr
-
-```
-
-# etcd
-export ETCDCTL_API=3
-etcdctl --endpoints=10.200.100.200:42379 get /global-ipam-etcd-cni --prefix
-
 ```

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/sirupsen/logrus"
 	"github.com/yametech/global-ipam/pkg/log"
@@ -14,8 +13,6 @@ import (
 
 func main() {
 	fmt.Printf("i am cni server\n")
-
-	os.Getenv("in")
 
 	stopCh := signals.SetupSignalHandler()
 	ctx, cancel := context.WithCancel(context.Background())

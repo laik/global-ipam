@@ -30,7 +30,7 @@ spec:
             type: ''
       containers:
         - name: cni-server
-          image: 'yametech/global-ipam:0.2.0'
+          image: 'yametech/global-ipam:0.3.0'
           command:
           - /cni.sh
           volumeMounts:

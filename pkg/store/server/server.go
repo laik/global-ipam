@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/yametech/global-ipam/pkg/common"
@@ -18,6 +19,7 @@ import (
 type Server struct {
 	*http.Server
 	dynamic.Interface
+	sync.Mutex
 }
 
 func NewServer(ctx context.Context) (*Server, error) {
@@ -26,6 +28,7 @@ func NewServer(ctx context.Context) (*Server, error) {
 		Server: &http.Server{
 			Handler: route,
 		},
+		Mutex: sync.Mutex{},
 	}
 	go func() {
 		for range ctx.Done() {
@@ -74,7 +77,6 @@ func (s *Server) Start() error {
 
 	return s.Serve(unixListener)
 }
-
 
 func createRestConfig() (*rest.Config, error) {
 	if common.InCluster {

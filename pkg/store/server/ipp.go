@@ -18,6 +18,8 @@ import (
 var IPPool = schema.GroupVersionResource{Group: "yamecloud.io", Version: "v1", Resource: "ippools"}
 
 func (s *Server) LastReservedIP(g *gin.Context) {
+	s.Mutex.Lock()
+	defer s.Mutex.Unlock()
 	defaultResponse := &store.LastReservedIPResponse{}
 	// rangeId := g.PostForm("rangeId")
 	ipPoolUnstructed, err := s.Interface.Resource(IPPool).Get(g.Request.Context(), store.GLOBAL_IPAM, metav1.GetOptions{})
@@ -41,6 +43,9 @@ func (s *Server) LastReservedIP(g *gin.Context) {
 }
 
 func (s *Server) ReleaseByID(g *gin.Context) {
+	s.Mutex.Lock()
+	defer s.Mutex.Unlock()
+
 	id := g.PostForm("id")
 	defaultResponse := &store.ReleaseResponse{}
 
@@ -79,6 +84,9 @@ func (s *Server) ReleaseByID(g *gin.Context) {
 }
 
 func (s *Server) Reserve(g *gin.Context) {
+	s.Mutex.Lock()
+	defer s.Mutex.Unlock()
+	
 	id := g.PostForm("id") // rook-ceph?
 	ip := g.PostForm("ip") // 10.0.0.x
 

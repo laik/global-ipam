@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"sync"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/yametech/global-ipam/pkg/allocator"
@@ -18,15 +17,11 @@ type CniClient struct {
 }
 
 type Client struct {
-	mutex sync.Mutex
-	cli   *CniClient
+	cli *CniClient
 }
 
 func New(name string, IPAMConfig *allocator.IPAMConfig) (store.Store, error) {
-	return &Client{
-		mutex: sync.Mutex{},
-		cli:   NewCniClient(store.UNIX_SOCK_PATH),
-	}, nil
+	return &Client{cli: NewCniClient(store.UNIX_SOCK_PATH)}, nil
 }
 
 // Close implements store.Store
@@ -52,7 +47,6 @@ func (c *Client) LastReservedIP(rangeId string) (net.IP, error) {
 
 // Lock implements store.Store
 func (c *Client) Lock() error {
-	c.mutex.Lock()
 	return nil
 }
 
@@ -103,7 +97,6 @@ func (c *Client) Reserve(id string, ip net.IP, rangeId string) (bool, error) {
 
 // Unlock implements store.Store
 func (c *Client) Unlock() error {
-	c.mutex.Unlock()
 	return nil
 }
 

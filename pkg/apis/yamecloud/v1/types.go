@@ -67,12 +67,7 @@ func (spec IPPoolSpec) Reuse() string {
 }
 
 func (spec IPPoolSpec) Last() string {
-	ips := make(IPList, 0)
-	for _, i := range spec.Ips {
-		ips = append(ips, i...)
-	}
-	sort.StringSlice(ips).Sort()
-	return ips[len(ips)-1]
+	return spec.Reuse()
 }
 
 func (spec IPPoolSpec) Release(id string) {
